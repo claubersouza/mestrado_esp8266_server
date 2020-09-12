@@ -5,8 +5,7 @@ extern "C" {
 #endif
 
 
-void switch_conn_task();
-void switch_client_server_task();
+void setup_wifi(void);
 
 
     #ifdef __cplusplus

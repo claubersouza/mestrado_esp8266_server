@@ -17,6 +17,8 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "include/udp_server.h"
+#include "include/udp_client.h"
+#include "include/scan_wifi.h"
 
 char ptrTaskList[250];
 
@@ -47,6 +49,7 @@ void init_task();
 #define CONFIG_FREERTOS_USE_STATS_FORMATTING_FUNCTIONS 1
 
 bool switchConn = false;
+bool switchServer = false;
 bool staconn = false;
 
 
@@ -229,7 +232,13 @@ void switch_conn_task() {
         wifi_init_sta();
         staconn = true;
     }
-    
+}
+
+void switch_client_server_task() {
+
+    xTaskCreate(udp_client_task, "udp_client", 4096, NULL, 5, NULL);
+   // xTaskCreate(udp_server_task, "udp_server", 4096, NULL, 1, NULL);
+
 }
 
 void app_main()
@@ -244,7 +253,9 @@ void app_main()
     
     staconn = true;
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
+
+    setup_wifi();
+    //wifi_init_sta();
 
    init_task();
 }

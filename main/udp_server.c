@@ -108,6 +108,14 @@ void udp_server_task(void *pvParameters)
                     ESP_LOGI(TAG, "saindo");
                     break;
                 }
+                else if (strcmp(rx_buffer,"client") == 0) {
+                    shutdown(sock, 0);
+                    close(sock);
+                    switch_client_server_task();
+                    ESP_LOGI(TAG, "trocando para client");
+                    break;
+                    vTaskDelete(NULL);
+                }
 
 
                 int err = sendto(sock, rx_buffer, len, 0, (struct sockaddr *)&sourceAddr, sizeof(sourceAddr));
