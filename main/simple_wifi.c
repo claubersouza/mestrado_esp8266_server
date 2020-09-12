@@ -17,7 +17,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "tcp_server.h"
-
+#include "udp_server.h"
 
 char ptrTaskList[250];
 
@@ -44,10 +44,13 @@ void init_task();
 #define EXAMPLE_ESP_WIFI_PASS      CONFIG_ESP_WIFI_PASSWORD
 #define EXAMPLE_MAX_STA_CONN       CONFIG_MAX_STA_CONN
 
-
+#define CONFIG_ESP_WIFI_SSID_STA "Clai2.4"
 #define CONFIG_FREERTOS_USE_TRACE_FACILITY 1
 
 #define CONFIG_FREERTOS_USE_STATS_FORMATTING_FUNCTIONS 1
+
+bool switchConn = false;
+bool staconn = false;
 
 
 /* FreeRTOS event group to signal when we are connected*/
@@ -64,11 +67,14 @@ const int WIFI_CONNECTED_BIT = BIT0;
 
 void init_task() {
 
-    xTaskCreate(count_down_init,"count_down",1024,NULL,2,NULL);
+    //xTaskCreate(count_down_init,"count_down",1024,NULL,2,NULL);
     
-    xTaskCreate(tcp_server_task,"tcp_server",4096,NULL,1,&Handle);
+    xTaskCreate(udp_server_task, "udp_server", 4096, NULL, 1, NULL);
 
-    xTaskCreate(check_socket,"count_down",1024,NULL,3,NULL);
+
+    //xTaskCreate(tcp_server_task,"tcp_server",4096,NULL,1,&Handle);
+
+    //xTaskCreate(check_socket,"count_down",1024,NULL,3,NULL);
 
    // vTaskStartScheduler();
 
@@ -76,6 +82,7 @@ void init_task() {
     
     
 }
+
 
 static const char *TAG = "simple wifi";
 
@@ -118,6 +125,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
+
 static void count_down_init(void *pvParameters) {
     int i = 0;
 
@@ -143,6 +151,7 @@ static void check_socket(void *pvParameters) {
         if (statusOf == 3) {
             vTaskDelay(500);
            vTaskResume(Handle);
+
         }
         //vTaskSuspend(tcp_server_task);
     }
@@ -155,7 +164,11 @@ void wifi_init_softap()
     wifi_event_group = xEventGroupCreate();
 
     tcpip_adapter_init();
+    
+    if (!switchConn)
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
+
+    switchConn = false;
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -192,13 +205,17 @@ void wifi_init_sta()
     wifi_event_group = xEventGroupCreate();
 
     tcpip_adapter_init();
+    
+    if (!switchConn)
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
+
+    switchConn = false;
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = EXAMPLE_ESP_WIFI_SSID,
+            .ssid = CONFIG_ESP_WIFI_SSID_STA,
             .password = EXAMPLE_ESP_WIFI_PASS
         },
     };
@@ -209,7 +226,26 @@ void wifi_init_sta()
 
     ESP_LOGI(TAG, "wifi_init_sta finished.");
     ESP_LOGI(TAG, "connect to ap SSID:%s password:%s",
-             EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+             CONFIG_ESP_WIFI_SSID_STA, EXAMPLE_ESP_WIFI_PASS);
+}
+
+
+void switch_conn_task() {
+    esp_wifi_disconnect();
+    esp_wifi_stop();
+    esp_wifi_deinit();
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    switchConn = true;
+
+    if (staconn) {
+        wifi_init_softap();
+        staconn = false;
+    }
+    else {
+        wifi_init_sta();
+        staconn = true;
+    }
+    
 }
 
 void app_main()
@@ -223,11 +259,13 @@ void app_main()
     ESP_ERROR_CHECK(ret);
     
 
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_AP");
-    wifi_init_softap();
+    staconn = true;
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    wifi_init_sta();
 
 
    init_task();
     
 
 }
+

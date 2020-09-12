@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 
-void udp_server_task(void *pvParameters);
+void switch_conn_task();
 
 
     #ifdef __cplusplus

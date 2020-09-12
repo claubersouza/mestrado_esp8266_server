@@ -21,12 +21,14 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
+#include "udp_server.h"
+#include "simple_wifi.h"
 
 #define PORT CONFIG_EXAMPLE_PORT
 
 static const char *TAG = "example";
 
-static void udp_server_task(void *pvParameters)
+void udp_server_task(void *pvParameters)
 {
     char rx_buffer[128];
     char addr_str[128];
@@ -99,6 +101,15 @@ static void udp_server_task(void *pvParameters)
                 ESP_LOGI(TAG, "Received %d bytes from %s:", len, addr_str);
                 ESP_LOGI(TAG, "%s", rx_buffer);
 
+                if (strcmp(rx_buffer,"sair") == 0 ) {
+                    shutdown(sock, 0);
+                    close(sock);
+                    switch_conn_task();
+                    ESP_LOGI(TAG, "saindo");
+                    break;
+                }
+
+
                 int err = sendto(sock, rx_buffer, len, 0, (struct sockaddr *)&sourceAddr, sizeof(sourceAddr));
                 if (err < 0) {
                     ESP_LOGE(TAG, "Error occured during sending: errno %d", errno);
@@ -114,15 +125,4 @@ static void udp_server_task(void *pvParameters)
         }
     }
     vTaskDelete(NULL);
-}
-
-void app_main()
-{
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    ESP_ERROR_CHECK(example_connect());
-
-    xTaskCreate(udp_server_task, "udp_server", 4096, NULL, 5, NULL);
 }
