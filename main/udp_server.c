@@ -22,7 +22,7 @@
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
 #include "udp_server.h"
-#include "simple_wifi.h"
+#include "include/simple_wifi.h"
 
 #define PORT CONFIG_EXAMPLE_PORT
 

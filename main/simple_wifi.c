@@ -16,8 +16,7 @@
 #include "esp_event_loop.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
-#include "tcp_server.h"
-#include "udp_server.h"
+#include "include/udp_server.h"
 
 char ptrTaskList[250];
 
@@ -25,10 +24,8 @@ char ptrTaskList[250];
 TaskHandle_t Handle = NULL; 
 eTaskState statusOf;
 
-
 static void count_down_init(void *pvParameters);
 static void check_socket(void *pvParameters);
-void tcp_server_task(void *pvParameters);
 
 void init_task();
 
@@ -134,17 +131,11 @@ static void count_down_init(void *pvParameters) {
         vTaskDelay(200);
         i++;
     }
-
-    wait_for_ip();
-
        vTaskDelete(NULL);
 }
 
-static void check_socket(void *pvParameters) {
-  //  char pWriteBuffer[2048];
-      
+static void check_socket(void *pvParameters) {      
     while (1) {
-        // vTaskList(pWriteBuffer);
       statusOf =  eTaskGetState(Handle);
         ESP_LOGI(TAG,"Estado: %d\n",statusOf);
         vTaskDelay(1000);
@@ -153,7 +144,6 @@ static void check_socket(void *pvParameters) {
            vTaskResume(Handle);
 
         }
-        //vTaskSuspend(tcp_server_task);
     }
 
     vTaskDelete(NULL);
@@ -191,12 +181,6 @@ void wifi_init_softap()
 
     ESP_LOGI(TAG, "wifi_init_softap finished.SSID:%s password:%s",
              EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-
-    
- 
-
-
-    //count_down_init();
 }
 
 
@@ -258,14 +242,10 @@ void app_main()
     }
     ESP_ERROR_CHECK(ret);
     
-
     staconn = true;
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
 
-
    init_task();
-    
-
 }
 
