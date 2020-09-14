@@ -19,6 +19,7 @@
 #include "include/udp_server.h"
 #include "include/udp_client.h"
 #include "include/scan_wifi.h"
+#include "include/storage.h"
 
 char ptrTaskList[250];
 
@@ -250,7 +251,10 @@ void app_main()
       ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
-    
+    spiff_init();
+    writeFile("teste.txt","Ola");
+    vTaskDelay(1000);
+    readFile("teste.txt");
     staconn = true;
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
 
