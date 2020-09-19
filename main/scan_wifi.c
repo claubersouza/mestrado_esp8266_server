@@ -7,21 +7,21 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/FreeRTOSConfig.h"
 #include "simple_wifi.h"
-
+#include "include/leach.h"
+#include "esp_log.h"
 
 #define MAX_APs 60
 int countRepeat = 0;
 int repeat = 1;
+char ssidScan[50];
 
+int rssiScan = 0;
 int channel = 0;
 
 void scan_wifi(wifi_scan_config_t scan_config);
 void next_channel(void);
-void setup_wifi(void);
 
 void scan_wifi(wifi_scan_config_t scan_config) {
-
-    
     printf("Começando Escanear Redes Wi-Fi Canal:%d\n",channel);
 
     esp_wifi_scan_start(&scan_config, true);
@@ -38,8 +38,12 @@ void scan_wifi(wifi_scan_config_t scan_config) {
  
 	for(int i = 0; i < apCount; i++){
         printf("Valor SSID: %s -> Canal: %d -> Valor RSSI:%d\n",(char *) list[i].ssid,list[i].primary,list[i].rssi);
+        if (strcmp((char *) list[i].ssid,ssidScan) == 0 ) {
+            rssiScan = list[i].rssi;
+            printf("Achou a rede com SSID");
+            return;
+        }
         vTaskDelay(100);
-
     }
 
     free(list);
@@ -47,6 +51,31 @@ void scan_wifi(wifi_scan_config_t scan_config) {
 
     next_channel();
 }
+
+    
+int getCH(const  char *ssid) 
+{
+    strcpy(ssidScan,ssid);
+    wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT();
+    esp_wifi_init(&wifi_config);
+    esp_wifi_set_mode(WIFI_MODE_STA);
+    esp_wifi_start();
+    ESP_LOGI("Scan Wifi", "Valor eh: %s",ssidScan);
+    //global variable to scan_config
+    wifi_scan_config_t scan_config = {
+		.ssid = 0,
+		.bssid = 0,
+		.channel = 1,
+        .show_hidden = true
+    };
+
+    scan_wifi(scan_config);
+
+    free(ssidScan);
+    return rssiScan;
+}
+
+
 
 void next_channel(void) {
 
@@ -74,8 +103,8 @@ void next_channel(void) {
         .show_hidden = true
     };
 
-
     scan_wifi(scan_config);
+    
 }
 
 void config_wifi(void) {
@@ -96,19 +125,15 @@ void config_wifi(void) {
         .show_hidden = true
     };
 
-    scan_wifi(scan_config);
+   scan_wifi(scan_config);
 
 }
 
 void setup_wifi(void) {
-
     wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&wifi_config);
     esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_start();
-
-
-    // configure and run the scan process in blocking mode
 
     //global variable to scan_config
     wifi_scan_config_t scan_config = {

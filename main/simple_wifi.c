@@ -67,12 +67,13 @@ const int WIFI_CONNECTED_BIT = BIT0;
 
 //void tcp_server_task(void *pvParameters);
 
-void init_task() {
+void init_task(void) 
+{
 
     //xTaskCreate(count_down_init,"count_down",1024,NULL,2,NULL);
     
   //  xTaskCreate(udp_server_task, "udp_server", 4096, NULL, 1, NULL);
-    xTaskCreate(generateRandom, "random", 2048, NULL, 5, NULL);  
+    xTaskCreate(initLeach, "random", 2048, NULL, 5, NULL);  
 
     //xTaskCreate(tcp_server_task,"tcp_server",4096,NULL,1,&Handle);
 
@@ -267,8 +268,10 @@ void app_main()
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
 
     setup_wifi();
-    //wifi_init_sta();
+    
 */
-   init_task();
+    //initLeach();
+    wifi_init_sta();
+    init_task();
 }
 

@@ -5,6 +5,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "random.h"
+#include "include/scan_wifi.h"
+#include "esp_log.h"
 
 const float p = 0.05;
 int rnd = 0;
@@ -51,6 +53,7 @@ float  generateRandom() {
 		float generate = (float) random(1,9)/9.0;
         if ( generate > 0)
             generate = generate / 100;
+            ESP_LOGI("LEACH RANDOM", "%f",generate);
             return generate;
         }
         //vTaskDelete(NULL);
@@ -69,26 +72,35 @@ float reelection() {
     return tleft;
 }
 
-void setup_phase() {
-
+void initLeach(void *pvParameters) {
+    ESP_LOGI("Chegou", "Funcionando");
+    initStruct();
+    electionCH();
+    //printf("chegou");
+    vTaskDelete(NULL);
+    
+    //
 }
 
 
 void electionCH() {
-    if (node.role == CH) {
-        if (node.rleft > 0 ) {
-            node.rleft = node.rleft - 1;
-        }
+    
+    ESP_LOGI("Chegou", "Vai eleger");
+    if (node.rleft > 0 ) {
+        node.rleft = node.rleft - 1;
+    }
+    
+    //Check if Energy is > 0 and available for Cluster Head election
+    if(node.E > 0 && node.rleft == 0) {
+        //if (generateRandom() > calculeThreshold() ) {      
+            node.dts = getCH("Clai2.4"); 
+            node.role = 1;
+            node.rn = rnd;
+            node.tel = node.tel + 1;
+            node.rleft = 1/p-reelection();
+            node.cluster = CLheads +1;
 
-        if(node.E > 0 && node.rleft == 0) {
-            if (generateRandom() > calculeThreshold() ) {      
-                //node.dts = //Set RSSI 
-                node.role = 1;
-                node.rn = rnd;
-                node.tel = node.tel + 1;
-                node.rleft = 1/p-reelection();
-                node.cluster = CLheads +1;
-            }
-        }
+            ESP_LOGI("Valor", "Valor RSSI Clai:%d",node.dts);
+        //}
     }
 }

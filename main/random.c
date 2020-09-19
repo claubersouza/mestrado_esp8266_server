@@ -27,7 +27,6 @@ int randomBitRaw(void)
  {
     uint8_t bit = (int)RANDOM_REG32;
 
-
     return bit & 1;
 }
 
