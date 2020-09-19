@@ -20,6 +20,7 @@
 #include "include/udp_client.h"
 #include "include/scan_wifi.h"
 #include "include/storage.h"
+#include "include/leach.h"
 
 char ptrTaskList[250];
 
@@ -70,8 +71,8 @@ void init_task() {
 
     //xTaskCreate(count_down_init,"count_down",1024,NULL,2,NULL);
     
-    xTaskCreate(udp_server_task, "udp_server", 4096, NULL, 1, NULL);
-
+  //  xTaskCreate(udp_server_task, "udp_server", 4096, NULL, 1, NULL);
+    xTaskCreate(generateRandom, "random", 2048, NULL, 5, NULL);  
 
     //xTaskCreate(tcp_server_task,"tcp_server",4096,NULL,1,&Handle);
 
@@ -187,6 +188,11 @@ void wifi_init_softap()
              EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
 }
 
+uint8_t* getMacAddressWifi() {
+    uint8_t l_Mac[6];
+    esp_wifi_get_mac(ESP_IF_WIFI_STA, l_Mac);
+    return l_Mac;
+}
 
 void wifi_init_sta()
 {
@@ -251,6 +257,8 @@ void app_main()
       ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
+  
+    /*
     spiff_init();
     writeFile("teste.txt","Ola");
     vTaskDelay(1000);
@@ -260,7 +268,7 @@ void app_main()
 
     setup_wifi();
     //wifi_init_sta();
-
+*/
    init_task();
 }
 
