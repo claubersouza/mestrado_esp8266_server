@@ -10,7 +10,8 @@ extern "C" {
 #define NORMAL 0
 
 void setup_wifi(void);
-void  generateRandom(void *pvParameter);
+float  generateRandom();
+float reelection();
 
 
 #ifdef __cplusplus

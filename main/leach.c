@@ -8,7 +8,7 @@
 
 const float p = 0.05;
 int rnd = 0;
-
+int CLheads=0;
 
 struct Node {
     int id; // sensor's ID number
@@ -41,27 +41,33 @@ void initStruct() {
     node.rn  = 0;
 }
 
-void  generateRandom(void *pvParameter) {
+float  generateRandom() {
 
         while (1) {
     	// wait 5 second
-		vTaskDelay(5000 / portTICK_RATE_MS);
+		vTaskDelay(1000 / portTICK_RATE_MS);
         
         // get a new random number and print it
-		int a = (int) random(1,5);
-
-        printf("New random number:%d\n",a);
+		float generate = (float) random(1,9)/9.0;
+        if ( generate > 0)
+            generate = generate / 100;
+            return generate;
         }
-        vTaskDelete(NULL);
+        //vTaskDelete(NULL);
 
 }
 
 
-/*
-float calculeThreshold() {
-    return (p/(1-p*(mod(rnd,1/p))));
-}*/
 
+float calculeThreshold() {
+    return (p/(1-p*(rnd%1/p)));
+}
+
+float reelection() {
+    float tleft= rnd%1/p;
+
+    return tleft;
+}
 
 void setup_phase() {
 
@@ -70,9 +76,19 @@ void setup_phase() {
 
 void electionCH() {
     if (node.role == CH) {
+        if (node.rleft > 0 ) {
+            node.rleft = node.rleft - 1;
+        }
+
         if(node.E > 0 && node.rleft == 0) {
-            node.tel = node.tel + 1;
-            //node.dts = //Set RSSI 
+            if (generateRandom() > calculeThreshold() ) {      
+                //node.dts = //Set RSSI 
+                node.role = 1;
+                node.rn = rnd;
+                node.tel = node.tel + 1;
+                node.rleft = 1/p-reelection();
+                node.cluster = CLheads +1;
+            }
         }
     }
 }
