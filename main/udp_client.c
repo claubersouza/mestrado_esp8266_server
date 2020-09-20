@@ -18,12 +18,15 @@
 #include "protocol_examples_common.h"
 #include "nvs.h"
 #include "nvs_flash.h"
-
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
+#include "include/udp_client.h"
 #include "include/simple_wifi.h"
+#include <stdio.h>
+
+
 
 #ifdef CONFIG_EXAMPLE_IPV4
 #define HOST_IP_ADDR "192.168.0.8"
@@ -36,6 +39,13 @@
 
 static const char *TAG = "example";
 static const char *payload = "Message from ESP32 ";
+int rssiSend;
+void initUdp(int rssi)
+{
+    rssiSend = rssi;
+    ESP_LOGE(TAG, "Send MSG %d", rssiSend);
+    xTaskCreate(udp_client_task, "udp_client", 4096, NULL, 5, NULL);
+}
 
 void udp_client_task(void *pvParameters)
 {
@@ -43,10 +53,9 @@ void udp_client_task(void *pvParameters)
     char addr_str[128];
     int addr_family;
     int ip_protocol;
+    char convertString[50];
 
     while (1) {
-
-#ifdef CONFIG_EXAMPLE_IPV4
         struct sockaddr_in destAddr;
         destAddr.sin_addr.s_addr = inet_addr(HOST_IP_ADDR);
         destAddr.sin_family = AF_INET;
@@ -54,17 +63,6 @@ void udp_client_task(void *pvParameters)
         addr_family = AF_INET;
         ip_protocol = IPPROTO_IP;
         inet_ntoa_r(destAddr.sin_addr, addr_str, sizeof(addr_str) - 1);
-#else // IPV6
-        struct sockaddr_in6 destAddr;
-        inet6_aton(HOST_IP_ADDR, &destAddr.sin6_addr);
-        destAddr.sin6_family = AF_INET6;
-        destAddr.sin6_port = htons(PORT);
-        destAddr.sin6_scope_id = tcpip_adapter_get_netif_index(TCPIP_ADAPTER_IF_STA);
-        addr_family = AF_INET6;
-        ip_protocol = IPPROTO_IPV6;
-        inet6_ntoa_r(destAddr.sin6_addr, addr_str, sizeof(addr_str) - 1);
-#endif
-
         int sock = socket(addr_family, SOCK_DGRAM, ip_protocol);
         if (sock < 0) {
             ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
@@ -73,8 +71,9 @@ void udp_client_task(void *pvParameters)
         ESP_LOGI(TAG, "Socket created");
 
         while (1) {
+            snprintf(convertString,sizeof(convertString),"%d",rssiSend);
 
-            int err = sendto(sock, payload, strlen(payload), 0, (struct sockaddr *)&destAddr, sizeof(destAddr));
+            int err = sendto(sock, convertString, strlen(convertString), 0, (struct sockaddr *)&destAddr, sizeof(destAddr));
             if (err < 0) {
                 ESP_LOGE(TAG, "Error occured during sending: errno %d", errno);
                 break;

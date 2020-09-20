@@ -195,6 +195,33 @@ uint8_t* getMacAddressWifi() {
     return l_Mac;
 }
 
+
+void wifi_cont_sta()
+{
+    wifi_event_group = xEventGroupCreate();
+
+    tcpip_adapter_init();
+    
+    switchConn = false;
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    wifi_config_t wifi_config = {
+        .sta = {
+            .ssid = CONFIG_ESP_WIFI_SSID_STA,
+            .password = EXAMPLE_ESP_WIFI_PASS
+        },
+    };
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+    ESP_ERROR_CHECK(esp_wifi_start() );
+
+    ESP_LOGI(TAG, "wifi_init_sta finished.");
+    ESP_LOGI(TAG, "connect to ap SSID:%s password:%s",
+             CONFIG_ESP_WIFI_SSID_STA, EXAMPLE_ESP_WIFI_PASS);
+}
+
 void wifi_init_sta()
 {
     wifi_event_group = xEventGroupCreate();

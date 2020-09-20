@@ -4,6 +4,8 @@ extern "C" {
 
 
 void udp_client_task(void *pvParameters);
+void initUdp(int rssi);
+
 
 
     #ifdef __cplusplus

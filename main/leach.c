@@ -7,6 +7,8 @@
 #include "random.h"
 #include "include/scan_wifi.h"
 #include "esp_log.h"
+#include "include/udp_client.h"
+#include "include/simple_wifi.h"
 
 const float p = 0.05;
 int rnd = 0;
@@ -27,8 +29,8 @@ struct Node {
     int chid   // node ID of the cluster head which the "i" normal node belongs to
 };
 
-    // Declare node of type Node
-    struct Node node; 
+// Declare node of type Node
+struct Node node; 
 
 
 void initStruct() {
@@ -52,15 +54,19 @@ float  generateRandom() {
         // get a new random number and print it
 		float generate = (float) random(1,9)/9.0;
         if ( generate > 0)
-            generate = generate / 100;
+            generate = generate / 10;
             ESP_LOGI("LEACH RANDOM", "%f",generate);
             return generate;
         }
+
+        return 0;
         //vTaskDelete(NULL);
 
 }
 
-
+void sendMsg(int rssi) {
+    initUdp(rssi);
+}
 
 float calculeThreshold() {
     return (p/(1-p*(rnd%1/p)));
@@ -79,7 +85,7 @@ void initLeach(void *pvParameters) {
     //printf("chegou");
     vTaskDelete(NULL);
     
-    //
+    
 }
 
 
@@ -89,18 +95,23 @@ void electionCH() {
     if (node.rleft > 0 ) {
         node.rleft = node.rleft - 1;
     }
-    
+   
+
     //Check if Energy is > 0 and available for Cluster Head election
+    
     if(node.E > 0 && node.rleft == 0) {
-        //if (generateRandom() > calculeThreshold() ) {      
+        if (generateRandom() > calculeThreshold() ) {      
             node.dts = getCH("Clai2.4"); 
             node.role = 1;
             node.rn = rnd;
             node.tel = node.tel + 1;
             node.rleft = 1/p-reelection();
             node.cluster = CLheads +1;
-
+           
             ESP_LOGI("Valor", "Valor RSSI Clai:%d",node.dts);
-        //}
+            wifi_cont_sta();
+            sendMsg(node.dts);
+        }
     }
+
 }
