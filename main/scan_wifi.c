@@ -9,6 +9,8 @@
 #include "simple_wifi.h"
 #include "include/leach.h"
 #include "esp_log.h"
+#include "include/consts.h"
+#include <inttypes.h>
 
 #define MAX_APs 60
 int countRepeat = 0;
@@ -20,6 +22,7 @@ int channel = 0;
 
 void scan_wifi(wifi_scan_config_t scan_config);
 void next_channel(void);
+void getMacAddress(uint8_t baseMac[6]);
 
 void scan_wifi(wifi_scan_config_t scan_config) {
     printf("Começando Escanear Redes Wi-Fi Canal:%d\n",channel);
@@ -38,11 +41,19 @@ void scan_wifi(wifi_scan_config_t scan_config) {
  
 	for(int i = 0; i < apCount; i++){
         printf("Valor SSID: %s -> Canal: %d -> Valor RSSI:%d\n",(char *) list[i].ssid,list[i].primary,list[i].rssi);
+        getMacAddress(list[i].bssid);
+        printf("\n");
+/*
+        if (strcmp((char *) list[i].bssid,MAC_PREFIX_1)  > 3 ) {
+            printf("VALOR DO MAC:%s",(char *) list[i].bssid);
+        }
+        
         if (strcmp((char *) list[i].ssid,ssidScan) == 0 ) {
             rssiScan = list[i].rssi;
             printf("Achou a rede com SSID");
             return;
-        }
+        }*/
+
         vTaskDelay(100);
     }
 
@@ -52,7 +63,15 @@ void scan_wifi(wifi_scan_config_t scan_config) {
     next_channel();
 }
 
+
+void getMacAddress(uint8_t baseMac[6]) {   
+    char baseMacChr[18] = {0};
+    sprintf(baseMacChr, "%02X:%02X:%02X:%02X:%02X:%02X", baseMac[0], baseMac[1], baseMac[2], baseMac[3], baseMac[4], baseMac[5]);
+    printf("%s",baseMacChr);
     
+}
+
+
 int getCH(const  char *ssid) 
 {
     strcpy(ssidScan,ssid);

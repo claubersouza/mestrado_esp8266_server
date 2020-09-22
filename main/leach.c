@@ -84,8 +84,6 @@ void initLeach(void *pvParameters) {
     electionCH();
     //printf("chegou");
     vTaskDelete(NULL);
-    
-    
 }
 
 
@@ -96,9 +94,7 @@ void electionCH() {
         node.rleft = node.rleft - 1;
     }
    
-
     //Check if Energy is > 0 and available for Cluster Head election
-    
     if(node.E > 0 && node.rleft == 0) {
         if (generateRandom() > calculeThreshold() ) {      
             node.dts = getCH("Clai2.4"); 

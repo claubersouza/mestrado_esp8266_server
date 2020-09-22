@@ -297,8 +297,9 @@ void app_main()
     setup_wifi();
     
 */
+    setup_wifi();
     //initLeach();
-    wifi_init_sta();
-    init_task();
+    //wifi_init_sta();
+    //init_task();
 }
 
