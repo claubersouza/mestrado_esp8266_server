@@ -12,6 +12,7 @@ extern "C" {
 
 //MAC PREFIX TO VENDOR/COMPANY Espressif Inc.
 #define MAC_PREFIX_1 "5C:CF:7F"
+#define MAC_PREFIX_2 "BC:2E:48"
 
 
    #ifdef __cplusplus
